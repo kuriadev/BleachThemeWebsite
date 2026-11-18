@@ -27,7 +27,7 @@ export function Archive({ projects }: { projects: Project[] }) {
             type="button"
             aria-pressed={filter === c.id}
             onClick={() => {
-              fx.play("click");
+              fx.play("flashstep");
               setFilter(c.id);
             }}
             className="flex min-h-11 items-center gap-2 rounded-full border border-white/12 px-5 text-[11px] uppercase tracking-[0.28em] text-ghost-muted transition-colors hover:border-white/30 hover:text-ghost aria-pressed:border-ghost aria-pressed:bg-ghost aria-pressed:text-void"

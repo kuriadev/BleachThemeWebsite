@@ -16,7 +16,8 @@ bleach-site/
 │  └─ images/
 │     ├─ hero-aizen.png              ← supplied hero art, 1672×941 (statically imported → blur placeholder)
 │     └─ aizen-portrait.png          ← supplied circular portrait (gallery plate + icon source)
-│  (add public/audio/ and public/video/ here if you ever ship recorded sound or dossier previews)
+│  ├─ audio/                         ← optional licensed samples (see docs/AUDIO.md)
+│  (add public/video/ for dossier hover previews)
 ├─ src/
 │  ├─ app/
 │  │  ├─ favicon.ico, icon.png, apple-icon.png ← site icons (file conventions)
@@ -53,7 +54,9 @@ bleach-site/
 │  │  │  └─ accent.ts                ← accent → glow / AA-safe text colour
 │  │  ├─ ui/MagneticButton.tsx, SplitReveal.tsx
 │  │  └─ webgl/ReiatsuCanvas.tsx, ReiatsuField.tsx  ← three.js points + custom shaders
-│  ├─ hooks/useSoundFX.ts            ← tactile audio for any element (play / bind)
+│  ├─ hooks/
+│  │  ├─ useBleachAudio.ts           ← named Soul Society cues + soundscape toggles
+│  │  └─ useSoundFX.ts               ← low-level play / bind, stereo pan from the pointer
 │  ├─ content/                       ← all copy & data (swap for a CMS later)
 │  │  ├─ gallery.ts                  ← gallery plates
 │  │  ├─ projects.ts                 ← SRDI dossiers
@@ -63,7 +66,8 @@ bleach-site/
 │  │  ├─ tokens.ts                   ← JS mirror of tokens (eases, springs, colours)
 │  │  ├─ prefs.ts                    ← ambient / sfx / motion store + pre-paint init script
 │  │  ├─ a11y/useDialog.ts           ← focus trap, Esc, scroll lock, focus restore
-│  │  ├─ audio/engine.ts             ← procedural Web Audio
+│  │  ├─ audio/engine.ts             ← Web Audio engine: synth voices, buses, ambience
+│  │  ├─ audio/samples.ts            ← optional self-hosted samples (off by default)
 │  │  └─ motion/shards.ts, useMediaQuery.ts
 │  └─ providers/ExperienceProvider.tsx ← prefs + Lenis + MotionConfig + audio sync
 ```
@@ -262,18 +266,7 @@ Motion covers everything else, so GSAP and Lottie are left out to keep the bundl
 
 ## 6. Audio
 
-`lib/audio/engine.ts` synthesises every sound, so there are no files to fetch:
-
-| Voice | Recipe |
-|---|---|
-| `hover` | 180 → 90 Hz sine blip, 50 ms, de-chattered at 70 ms |
-| `click` | band-passed noise transient + 140 → 48 Hz thump (mechanical detent) |
-| `open` | rising triangle + sine fifth |
-| `shatter` | high-passed noise sweep + 4 inharmonic partials + sub drop |
-| `unsheathe` | 900 → 5,200 Hz band-passed noise sweep (the blade leaving the saya) + two bell pings at 2,093 / 3,136 Hz |
-| ambient hum | 55 / 55.6 Hz beating sines + 110 Hz triangle + band-passed noise, low-passed at 320 Hz |
-
-There are two independent, opt-in switches in the navbar: **Ambient** (the hum) and **SFX** (clicks, hovers, chimes). The SFX choice is remembered; ambient never auto-restarts across visits (browser autoplay policy, and courtesy). Everything runs through a compressor on the master bus.
+The full sound design (cues, hook API, wiring, and how to add licensed samples) lives in [`AUDIO.md`](AUDIO.md). In short: `src/lib/audio/engine.ts` synthesises every cue (Zanpakutō unsheathe, hollow echo, shunpo whoosh, glass click, shatter, and a reiatsu drone with wind and temple bells), `samples.ts` optionally layers self-hosted recordings over them, and `useBleachAudio` / `useSoundFX` expose it to components. Sound is muted by default, both switches are remembered, and nothing plays before a user gesture.
 
 ---
 

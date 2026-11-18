@@ -109,7 +109,7 @@ export function Gallery({ pieces }: { pieces: GalleryPiece[] }) {
   }, [fx]);
 
   const setModeWithSound = (m: Mode) => {
-    fx.play("click");
+    fx.play("glass");
     setMode(m);
   };
 

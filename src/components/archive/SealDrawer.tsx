@@ -50,7 +50,7 @@ export function SealDrawer({ project: p, onClose }: { project: Project; onClose:
   }, [reducedMotion]);
 
   const close = () => {
-    fx.play("click");
+    fx.play("glass");
     onClose();
   };
 

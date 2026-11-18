@@ -76,6 +76,23 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
   // Stored SFX preference → engine (silent; first gesture unlocks audio).
   useEffect(() => audio.syncSfx(prefs.sfx), [prefs.sfx]);
 
+  // Fetch any configured samples up front so the first click has no latency.
+  useEffect(() => audio.preload(), []);
+
+  // A remembered ambience resumes on the visitor's first gesture, never on load.
+  useEffect(() => {
+    if (!prefsStore.getSnapshot().ambient) return;
+    const arm = () => {
+      if (prefsStore.getSnapshot().ambient) void audio.setAmbient(true);
+    };
+    window.addEventListener("pointerdown", arm, { once: true });
+    window.addEventListener("keydown", arm, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", arm);
+      window.removeEventListener("keydown", arm);
+    };
+  }, []);
+
   const toggleAmbient = useCallback(() => {
     const next = !prefsStore.getSnapshot().ambient;
     prefsStore.set({ ambient: next });

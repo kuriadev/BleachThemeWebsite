@@ -19,7 +19,8 @@ export function DossierCard({ project: p, onOpen }: { project: Project; onOpen: 
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const play = () => {
-    fx.play("hover");
+    // Severe and catastrophic files answer with a faint hollow echo.
+    fx.play(p.threat >= 4 ? "hollow" : "hover");
     if (!reducedMotion) void videoRef.current?.play().catch(() => {});
   };
   const stop = () => {

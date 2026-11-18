@@ -66,7 +66,7 @@ export function CodexCard({ character: c, index, onOpen, onFocusCard }: Props) {
         onMouseEnter={() => fx.play("hover")}
         onFocus={(e) => onFocusCard?.(e.currentTarget)}
         onClick={() => {
-          fx.play("open");
+          fx.play("unsheathe");
           onOpen(c.id);
         }}
         data-accent={c.accent}

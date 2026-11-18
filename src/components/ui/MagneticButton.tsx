@@ -2,7 +2,7 @@
 
 import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
 import { useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
-import { useSoundFX } from "@/hooks/useSoundFX";
+import { useSoundFX, type Voice } from "@/hooks/useSoundFX";
 import { spring } from "@/lib/tokens";
 import { useExperience } from "@/providers/ExperienceProvider";
 
@@ -13,6 +13,10 @@ interface Props extends Omit<ComponentPropsWithoutRef<"button">, "children" | "o
   variant?: Variant;
   /** How far (px) the button can be pulled toward the cursor. */
   strength?: number;
+  /** Cue on mouse hover (primary CTAs use the Zanpakutō unsheathe). */
+  hoverVoice?: Voice | null;
+  /** Cue on press. `null` when onClick plays its own (e.g. the shatter). */
+  pressVoice?: Voice | null;
 }
 
 const styles: Record<Variant, string> = {
@@ -33,6 +37,8 @@ export function MagneticButton({
   className = "",
   onClick,
   onMouseEnter,
+  hoverVoice = "hover",
+  pressVoice = "glass",
   ...rest
 }: Props) {
   const fx = useSoundFX();
@@ -65,11 +71,11 @@ export function MagneticButton({
       onPointerMove={onMove}
       onPointerLeave={reset}
       onMouseEnter={(e) => {
-        fx.play("hover");
+        if (hoverVoice) fx.play(hoverVoice, e);
         onMouseEnter?.(e);
       }}
       onClick={(e) => {
-        fx.play("click");
+        if (pressVoice) fx.play(pressVoice, e);
         onClick?.(e);
       }}
       style={{ x: sx, y: sy }}

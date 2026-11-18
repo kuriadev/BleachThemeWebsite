@@ -5,7 +5,10 @@
  */
 export type MotionPref = "auto" | "reduced";
 export interface Prefs {
-  /** Low ambient drone. Never restored on load (no surprise audio). */
+  /**
+   * Reiatsu ambience. Remembered, but never auto-plays: a returning visitor
+   * who left it on hears it again only after their first click or key press.
+   */
   ambient: boolean;
   /** UI click / hover / chime effects. Only ever sound after a user gesture. */
   sfx: boolean;
@@ -25,9 +28,7 @@ function read(): Prefs {
     if (!raw) return DEFAULTS;
     const parsed = JSON.parse(raw) as Partial<Prefs>;
     return {
-      // Ambient is never restored as "on": browsers block audio until a
-      // gesture, and a drone starting on load is hostile UX.
-      ambient: false,
+      ambient: parsed.ambient === true,
       sfx: parsed.sfx === true,
       motion: parsed.motion === "reduced" ? "reduced" : "auto",
     };
@@ -54,7 +55,7 @@ export const prefsStore = {
   set(patch: Partial<Prefs>) {
     current = { ...current, ...patch };
     try {
-      window.localStorage.setItem(PREFS_KEY, JSON.stringify({ motion: current.motion, sfx: current.sfx }));
+      window.localStorage.setItem(PREFS_KEY, JSON.stringify({ motion: current.motion, sfx: current.sfx, ambient: current.ambient }));
     } catch {
       /* storage unavailable (private mode) — keep in-memory value */
     }

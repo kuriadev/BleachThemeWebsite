@@ -28,7 +28,7 @@ export function Lightbox({ pieces, index, mode, inkClass, onIndex, onClose }: Pr
   const n = pieces.length;
 
   const go = (delta: number) => {
-    fx.play("click");
+    fx.play("glass");
     onIndex((index + delta + n) % n);
   };
 
@@ -105,7 +105,7 @@ export function Lightbox({ pieces, index, mode, inkClass, onIndex, onClose }: Pr
           ref={closeRef}
           type="button"
           onClick={() => {
-            fx.play("click");
+            fx.play("glass");
             onClose();
           }}
           aria-label="Close lightbox"

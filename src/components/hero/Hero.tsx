@@ -256,12 +256,13 @@ export function Hero() {
             transition={{ duration: 1, delay: 1.5, ease: ease.reiatsu }}
             className="pointer-events-auto flex flex-wrap gap-3"
           >
-            <MagneticButton onClick={() => shatter()} aria-describedby="hero-title-desc">
+            <MagneticButton onClick={() => shatter()} hoverVoice="unsheathe" pressVoice={null} aria-describedby="hero-title-desc">
               <ShardIcon />
               Shatter Kyōka Suigetsu
             </MagneticButton>
             <MagneticButton
               variant="ghost"
+              pressVoice="flashstep"
               onClick={() => document.getElementById("codex")?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth" })}
             >
               Enter Soul Society

@@ -70,7 +70,7 @@ export function TopBar() {
               <li key={n.href}>
                 <a
                   href={n.href}
-                  {...fx.bind({ hover: "hover", press: "click" })}
+                  {...fx.bind({ hover: "hover", press: "flashstep" })}
                   className="group flex min-h-11 items-center gap-2 rounded-full px-4 text-[11px] uppercase tracking-[0.3em] text-ghost-muted transition-colors hover:bg-white/[0.06] hover:text-ghost"
                 >
                   <span aria-hidden className="font-kanji text-[12px] text-ghost-faint transition-colors group-hover:text-hogyoku-bright">
@@ -84,10 +84,11 @@ export function TopBar() {
         </nav>
 
         <div className="flex items-center" role="group" aria-label="Experience settings">
-          <ToggleButton pressed={ambient} onClick={toggleAmbient} label={ambient ? "Turn off ambient sound" : "Turn on ambient sound"} text="Ambient">
+          <ToggleButton pressed={ambient} onClick={toggleAmbient} label={ambient ? "Turn off reiatsu ambience" : "Turn on reiatsu ambience"} text="Reiatsu">
             <AmbientGlyph on={ambient} animate={!reducedMotion} />
           </ToggleButton>
-          <ToggleButton pressed={sfx} onClick={toggleSfx} label={sfx ? "Turn off sound effects" : "Turn on sound effects"} text="SFX">
+          <ToggleButton pressed={sfx} onClick={toggleSfx} label={sfx ? "Mute the Soul Society Soundscape" : "Turn on the Soul Society Soundscape"} text="Sound"
+            prominent>
             <SfxGlyph on={sfx} />
           </ToggleButton>
           <ToggleButton
@@ -105,7 +106,7 @@ export function TopBar() {
             aria-controls="dock-drawer"
             aria-label={open ? "Close menu" : "Open menu"}
             onClick={() => {
-              fx.play(open ? "click" : "open");
+              fx.play(open ? "glass" : "open");
               setOpen((o) => !o);
             }}
             className="ml-1 flex size-11 items-center justify-center rounded-full bg-white/[0.06] text-ghost transition-colors hover:bg-white/[0.12] lg:hidden"
@@ -137,8 +138,8 @@ export function TopBar() {
                 >
                   <a
                     href={n.href}
-                    onClick={() => {
-                      fx.play("click");
+                    onClick={(e) => {
+                      fx.play("flashstep", e);
                       setOpen(false);
                     }}
                     className="group flex min-h-14 items-center gap-4 rounded-2xl px-4 text-ghost transition-colors hover:bg-white/[0.06] focus-visible:bg-white/[0.06]"
@@ -170,12 +171,15 @@ function ToggleButton({
   onClick,
   label,
   text,
+  prominent = false,
   children,
 }: {
   pressed: boolean;
   onClick: () => void;
   label: string;
   text: string;
+  /** Keeps its label visible from sm up (the main soundscape switch). */
+  prominent?: boolean;
   children: React.ReactNode;
 }) {
   const fx = useSoundFX();
@@ -187,12 +191,18 @@ function ToggleButton({
       title={label}
       onClick={() => {
         onClick();
-        fx.play("click");
+        fx.play("glass");
       }}
       className="flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full px-3 text-[10px] uppercase tracking-[0.28em] text-ghost-muted transition-colors hover:bg-white/[0.06] hover:text-ghost aria-pressed:bg-white/[0.08] aria-pressed:text-ghost"
     >
       {children}
-      <span className="hidden xl:inline">{text}</span>
+      <span className={prominent ? "hidden sm:inline" : "hidden xl:inline"}>{text}</span>
+      {prominent && !pressed && (
+        <span aria-hidden className="relative -ml-1 flex size-1.5">
+          <span className="absolute inset-0 animate-ping rounded-full bg-hogyoku-bright opacity-70" />
+          <span className="relative size-1.5 rounded-full bg-hogyoku-bright" />
+        </span>
+      )}
     </button>
   );
 }

@@ -29,7 +29,7 @@ export function CodexDialog({ character: c, onClose }: Props) {
   useDialog({ panelRef, initialFocusRef: closeRef, onClose });
 
   const close = () => {
-    fx.play("click");
+    fx.play("glass");
     onClose();
   };
 
