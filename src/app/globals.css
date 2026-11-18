@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — Tailwind v4 reads its theme from CSS (`@theme`), so this
+ * block IS the Tailwind config. JS-side mirrors live in src/lib/tokens.ts.
+ */
+@theme {
+  /* ── Palette ───────────────────────────────────────────── */
+  --color-void: #000000;
+  --color-obsidian: #050505;
+  --color-obsidian-800: #0b0b0d;
+  --color-obsidian-700: #121216;
+  --color-obsidian-600: #1b1b21;
+  --color-ghost: #f5f5f7;
+  --color-ghost-muted: #a1a1aa; /* 7.9:1 on obsidian — AA for body copy */
+  --color-ghost-faint: #6b6b76; /* 3.9:1 — large/decorative text only */
+
+  --color-bankai: #00f0ff; /* rare energy highlights */
+  --color-hollow: #ff1e42; /* focal points, threat states */
+  --color-hogyoku: #7b2cbf; /* Aizen ambient glow */
+  --color-hogyoku-bright: #a66cff; /* violet that passes AA on obsidian */
+
+  /* ── Typography ────────────────────────────────────────── */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-kanji: var(--font-kanji), "Hiragino Mincho ProN", "Yu Mincho", serif;
+
+  --text-display: clamp(3.5rem, 11vw, 11rem);
+  --text-display--line-height: 0.86;
+  --text-display--letter-spacing: -0.04em;
+
+  /* ── Easing (weight-conscious, never bouncy) ───────────── */
+  --ease-blade: cubic-bezier(0.77, 0, 0.175, 1); /* heavy in-out, a sword draw */
+  --ease-reiatsu: cubic-bezier(0.16, 1, 0.3, 1); /* expo-out release */
+  --ease-shunpo: cubic-bezier(0.7, 0, 0.84, 0); /* sharp exit */
+
+  /* ── Keyframes ─────────────────────────────────────────── */
+  --animate-reiatsu-pulse: reiatsu-pulse 6s var(--ease-reiatsu) infinite;
+  --animate-blade-sweep: blade-sweep 2.4s var(--ease-blade) infinite;
+  --animate-grain: grain 1.2s steps(6) infinite;
+  --animate-float-slow: float-slow 12s ease-in-out infinite;
+
+  @keyframes reiatsu-pulse {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50% { opacity: 0.9; transform: scale(1.06); }
+  }
+  @keyframes blade-sweep {
+    0% { transform: translateX(-120%) skewX(-20deg); }
+    60%, 100% { transform: translateX(220%) skewX(-20deg); }
+  }
+  @keyframes grain {
+    0% { transform: translate(0, 0); }
+    20% { transform: translate(-3%, 2%); }
+    40% { transform: translate(2%, -3%); }
+    60% { transform: translate(-2%, -1%); }
+    80% { transform: translate(3%, 3%); }
+    100% { transform: translate(0, 0); }
+  }
+  @keyframes float-slow {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--r, 0deg)); }
+    50% { transform: translate3d(0, -14px, 0) rotate(var(--r, 0deg)); }
+  }
+}
+
+@utility glass {
+  background: linear-gradient(
+    135deg,
+    rgb(255 255 255 / 0.08) 0%,
+    rgb(255 255 255 / 0.02) 45%,
+    rgb(255 255 255 / 0.05) 100%
+  );
+  border: 1px solid rgb(255 255 255 / 0.1);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    inset 0 -1px 0 rgb(0 0 0 / 0.4),
+    0 30px 60px -30px rgb(0 0 0 / 0.9);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+@utility text-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  html {
+    background: var(--color-void);
+  }
+  body {
+    background: var(--color-obsidian);
+    color: var(--color-ghost);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--color-hogyoku);
+    color: var(--color-ghost);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-bankai);
+    outline-offset: 3px;
+  }
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+/*
+ * Reduced motion: honoured from the OS *and* from the in-site toggle
+ * (data-motion is set before first paint by the inline script in layout.tsx).
+ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
