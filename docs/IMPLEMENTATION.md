@@ -14,11 +14,12 @@ bleach-site/
 ├─ next.config.ts                  ← image qualities/formats, security headers
 ├─ src/
 │  ├─ app/
+│  │  ├─ favicon.ico, icon.png, apple-icon.png ← site icons (file conventions)
 │  │  ├─ layout.tsx                ← fonts, pre-paint prefs script, providers, TopBar
 │  │  ├─ page.tsx                  ← Server Component: composes sections
 │  │  └─ globals.css               ← DESIGN TOKENS (Tailwind v4 @theme = the config)
 │  ├─ assets/
-│  │  └─ aizen-hero.png            ← supplied hero art (static import → blur placeholder)
+│  │  └─ aizen-hero.png            ← supplied hero art, 1672×941 (static import → blur placeholder)
 │  ├─ components/
 │  │  ├─ layout/TopBar.tsx         ← nav + Sound / Motion toggles (aria-pressed)
 │  │  ├─ hero/
@@ -97,9 +98,9 @@ Depth stack (back → front), each driven by one spring-smoothed pointer value t
 4. **L3** — three liquid-glass mirror shards on the flanks (depth 1.1, `backdrop-filter` refraction)
 5. **L4** — typography + CTAs (scroll-linked lift & fade)
 
-**Composition of the supplied art (739×415).** The face sits at ~50% x / 18% y and the violet energy fills both flanks. Two intersected masks (radial + vertical linear) keep the figure and let the flanks bleed into obsidian. The headline sits in the lower-left over the dark coat, never above ~45% of the viewport, so the face stays clear.
+**Composition of the supplied art (1672×941).** The art is full-bleed: it covers the viewport, anchored to its top edge so his face stays in frame on every aspect ratio. The frame starts just below the top bar and overscans the sides and bottom, so pointer parallax never reveals an edge. A soft vignette plus top and bottom fades melt it into obsidian. The headline sits low-left over the flames, never over the face.
 
-> ⚠️ **Resolution:** the source is 739 px wide and is shown up to ~1240 px, so it's a little soft on large/retina screens. Drop a ≥2400 px version into `src/assets/aizen-hero.png` (same aspect) and nothing else needs to change.
+**Icons.** `src/app/favicon.ico` (16–64 px), `icon.png` (256 px, circular, transparent corners) and `apple-icon.png` (180 px, opaque) are generated from the supplied circular portrait. Next's file conventions emit the `<link>` tags automatically.
 
 **Kyōka Suigetsu distortion.** An SVG `feTurbulence` → `feDisplacementMap` filter. Pointer *velocity* over the art feeds a decaying value written straight to the filter's `scale` attribute in rAF (no React re-render per frame). The filter is only attached while scale > 0.4, so idle cost is zero. It's disabled for touch and reduced motion.
 

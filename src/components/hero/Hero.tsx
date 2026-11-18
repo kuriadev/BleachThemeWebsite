@@ -21,15 +21,17 @@ import { REIATSU_BURST_EVENT } from "@/components/webgl/ReiatsuField";
 import { ShatterImage, type ShatterPhase } from "./ShatterImage";
 
 /**
- * Composition notes for the supplied art (739×415, 16:9):
- * - Face sits at ~50% x / ~18% y; arms span ~20–80% x at ~45% y.
- * - Violet energy fills both flanks, so the mask keeps the centre and lets
- *   the flanks bleed into obsidian. Headline lives in the dark coat area
- *   (bottom third), never above ~60% y, so the face is never covered.
+ * Composition notes for the supplied art (1672×941, 16:9, full-bleed):
+ * - Face sits at ~50% x / ~14% y; arms span ~18–82% x at ~55% y.
+ * - Violet flames fill both flanks and frame him, so the art covers the
+ *   whole viewport. A soft vignette and a bottom fade melt it into obsidian.
+ * - The art is anchored to its top edge and the frame starts below the nav,
+ *   so his hair never sits under the top bar on any screen. The headline sits low-left, never over the face.
  */
+const FOCAL = "50% 0%";
 const MASK = [
-  "radial-gradient(ellipse 58% 80% at 50% 38%, #000 42%, rgba(0,0,0,0.6) 62%, transparent 82%)",
-  "linear-gradient(to bottom, transparent 0%, #000 16%, #000 70%, transparent 100%)",
+  "radial-gradient(ellipse 85% 95% at 50% 35%, #000 55%, rgba(0,0,0,0.75) 75%, rgba(0,0,0,0.35) 100%)",
+  "linear-gradient(to bottom, transparent 0%, #000 7%, #000 62%, transparent 100%)",
 ].join(", ");
 const FILTER_ID = "kyoka-distort";
 
@@ -147,12 +149,13 @@ export function Hero() {
       <ReiatsuCanvas className="-z-20" />
 
       {/* L2 — the art */}
-      <motion.div style={{ y: artY, scale: artScale }} className="absolute inset-0 -z-10 flex items-center justify-center">
-        <Layer depth={0.45} x={spx} y={spy} className="!relative flex items-center justify-center">
+      <motion.div style={{ y: artY, scale: artScale }} className="absolute inset-0 -z-10">
+        <Layer depth={0.45} x={spx} y={spy}>
+          {/* Overscan on the sides and bottom so pointer parallax never reveals an edge */}
           <div
             ref={frameRef}
             onClick={onArtClick}
-            className="relative aspect-[739/415] w-[175vw] max-w-none cursor-crosshair sm:w-[130vw] md:w-[min(1240px,96vw)]"
+            className="pointer-events-auto absolute -inset-x-[3%] -bottom-[14%] top-[3%] cursor-crosshair md:top-[5%]"
             style={{ filter: distorting ? `url(#${FILTER_ID})` : undefined }}
           >
             <ShatterImage
@@ -161,6 +164,7 @@ export function Hero() {
               phase={phase}
               origin={origin}
               mask={MASK}
+              focal={FOCAL}
             />
           </div>
         </Layer>
@@ -168,9 +172,9 @@ export function Hero() {
 
       {/* L3 — liquid-glass mirror shards (refraction over the flanks, never the face) */}
       <Layer depth={1.1} x={spx} y={spy} className="-z-[5] hidden md:block">
-        <GlassShard className="left-[14%] top-[30%] h-[34vh] w-[9vw]" rotate={-14} delay={0} />
-        <GlassShard className="right-[13%] top-[22%] h-[28vh] w-[7vw]" rotate={18} delay={1.6} />
-        <GlassShard className="right-[24%] bottom-[16%] h-[18vh] w-[5vw]" rotate={-32} delay={3.1} />
+        <GlassShard className="left-[6%] top-[22%] h-[30vh] w-[7vw]" rotate={-14} delay={0} />
+        <GlassShard className="right-[6%] top-[16%] h-[26vh] w-[6vw]" rotate={18} delay={1.6} />
+        <GlassShard className="right-[16%] bottom-[20%] h-[16vh] w-[4vw]" rotate={-32} delay={3.1} />
       </Layer>
 
       {/* Bottom fade into the next section */}
@@ -303,7 +307,7 @@ function GlassShard({ className, rotate, delay }: { className: string; rotate: n
       style={{ ["--r" as string]: `${rotate}deg`, animationDelay: `${delay}s` }}
     >
       <div
-        className="h-full w-full border border-white/15 bg-gradient-to-b from-white/[0.14] via-white/[0.03] to-hogyoku/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] backdrop-blur-[3px] backdrop-brightness-125 backdrop-hue-rotate-15 backdrop-saturate-150"
+        className="h-full w-full border border-white/15 bg-gradient-to-b from-white/[0.14] via-white/[0.03] to-hogyoku/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] backdrop-blur-[3px] backdrop-brightness-110 backdrop-saturate-125"
         style={{ clipPath: "polygon(50% 0, 100% 18%, 78% 100%, 12% 86%, 0 22%)" }}
       />
     </div>

@@ -16,13 +16,15 @@ interface Props {
   origin: { x: number; y: number };
   /** Soft vignette so the art dissolves into the obsidian background. */
   mask: string;
+  /** object-position of the art; shards use the same value so they line up. */
+  focal?: string;
 }
 
 /**
  * The hero art as one optimised <Image> (fast LCP). Only when the illusion is
  * shattered do we swap to ~70 clip-path shards that fly apart and reassemble.
  */
-export function ShatterImage({ image, alt, phase, origin, mask }: Props) {
+export function ShatterImage({ image, alt, phase, origin, mask, focal = "50% 50%" }: Props) {
   const shards = useMemo(() => makeShards(), []);
   const active = phase !== "idle";
 
@@ -39,9 +41,9 @@ export function ShatterImage({ image, alt, phase, origin, mask }: Props) {
         fetchPriority="high"
         quality={90}
         placeholder="blur"
-        sizes="(max-width: 768px) 170vw, min(1200px, 92vw)"
+        sizes="106vw"
         className="object-cover transition-opacity duration-150"
-        style={{ opacity: active ? 0 : 1 }}
+        style={{ opacity: active ? 0 : 1, objectPosition: focal }}
       />
 
       {active && (
@@ -64,7 +66,7 @@ export function ShatterImage({ image, alt, phase, origin, mask }: Props) {
                   clipPath: s.clip,
                   backgroundImage: `url(${image.src})`,
                   backgroundSize: "cover",
-                  backgroundPosition: "center",
+                  backgroundPosition: focal,
                   transformOrigin: `${s.cx}% ${s.cy}%`,
                 }}
                 initial={{ x: "0%", y: "0%", rotate: 0, scale: 1, opacity: 1 }}
