@@ -4,7 +4,7 @@ import Image from "next/image";
 import { motion } from "motion/react";
 import { useRef } from "react";
 import type { Project } from "@/content/projects";
-import { audio } from "@/lib/audio/engine";
+import { useSoundFX } from "@/hooks/useSoundFX";
 import { ease } from "@/lib/tokens";
 import { useExperience } from "@/providers/ExperienceProvider";
 import { KidoTag, ThreatBadge } from "./badges";
@@ -14,11 +14,12 @@ import { KidoTag, ThreatBadge } from "./badges";
  * exists, otherwise runs a scanline over the preview still.
  */
 export function DossierCard({ project: p, onOpen }: { project: Project; onOpen: (id: string) => void }) {
+  const fx = useSoundFX();
   const { reducedMotion } = useExperience();
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const play = () => {
-    audio.play("hover");
+    fx.play("hover");
     if (!reducedMotion) void videoRef.current?.play().catch(() => {});
   };
   const stop = () => {
@@ -109,7 +110,7 @@ export function DossierCard({ project: p, onOpen }: { project: Project; onOpen: 
           <button
             type="button"
             onClick={() => {
-              audio.play("unsheathe");
+              fx.play("unsheathe");
               onOpen(p.id);
             }}
             aria-haspopup="dialog"

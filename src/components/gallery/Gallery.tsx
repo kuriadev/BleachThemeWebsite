@@ -4,7 +4,7 @@ import Image from "next/image";
 import { AnimatePresence } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { GalleryPiece } from "@/content/gallery";
-import { audio } from "@/lib/audio/engine";
+import { useSoundFX } from "@/hooks/useSoundFX";
 import { useExperience } from "@/providers/ExperienceProvider";
 import { accentMap } from "@/components/codex/accent";
 import { GalleryFilters } from "./GalleryFilters";
@@ -26,6 +26,7 @@ const SHAPE: Record<GalleryPiece["shape"], string> = {
  * where pieces turn toward the viewer as they near the centre.
  */
 export function Gallery({ pieces }: { pieces: GalleryPiece[] }) {
+  const fx = useSoundFX();
   const { reducedMotion } = useExperience();
   const [mode, setMode] = useState<Mode>("color");
   const [open, setOpen] = useState<number | null>(null);
@@ -103,12 +104,12 @@ export function Gallery({ pieces }: { pieces: GalleryPiece[] }) {
 
   const openAt = useCallback((i: number) => {
     if (drag.current.moved) return; // a drag is not a click
-    audio.play("unsheathe");
+    fx.play("unsheathe");
     setOpen(i);
-  }, []);
+  }, [fx]);
 
   const setModeWithSound = (m: Mode) => {
-    audio.play("click");
+    fx.play("click");
     setMode(m);
   };
 
@@ -157,7 +158,7 @@ export function Gallery({ pieces }: { pieces: GalleryPiece[] }) {
               type="button"
               data-piece
               onClick={() => openAt(i)}
-              onMouseEnter={() => audio.play("hover")}
+              onMouseEnter={() => fx.play("hover")}
               aria-haspopup="dialog"
               aria-label={`Open plate ${i + 1}: ${p.title}. ${p.medium}.`}
               className={`${styles.item} group block text-left`}

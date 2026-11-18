@@ -6,6 +6,7 @@ export function VolumePoem() {
   const { volume, title, kanji, lines } = monologue;
   return (
     <section aria-labelledby="poem-title" className="relative overflow-hidden bg-void py-40 md:py-56">
+      <span aria-hidden className="reiatsu-smoke pointer-events-none absolute inset-x-0 top-0 h-64 -translate-y-1/3 opacity-90" />
       <span
         aria-hidden
         className="text-vertical pointer-events-none absolute right-[4vw] top-1/2 -translate-y-1/2 select-none font-kanji text-[clamp(5rem,14vw,13rem)] font-black leading-none text-ghost/[0.04]"

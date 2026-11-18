@@ -2,7 +2,7 @@
 
 import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
 import { useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
-import { audio } from "@/lib/audio/engine";
+import { useSoundFX } from "@/hooks/useSoundFX";
 import { spring } from "@/lib/tokens";
 import { useExperience } from "@/providers/ExperienceProvider";
 
@@ -35,6 +35,7 @@ export function MagneticButton({
   onMouseEnter,
   ...rest
 }: Props) {
+  const fx = useSoundFX();
   const ref = useRef<HTMLButtonElement>(null);
   const { reducedMotion } = useExperience();
   const x = useMotionValue(0);
@@ -64,16 +65,16 @@ export function MagneticButton({
       onPointerMove={onMove}
       onPointerLeave={reset}
       onMouseEnter={(e) => {
-        audio.play("hover");
+        fx.play("hover");
         onMouseEnter?.(e);
       }}
       onClick={(e) => {
-        audio.play("click");
+        fx.play("click");
         onClick?.(e);
       }}
       style={{ x: sx, y: sy }}
       whileTap={{ scale: 0.96 }}
-      className={`group relative isolate inline-flex min-h-12 items-center justify-center overflow-hidden rounded-full px-7 text-[12px] font-medium uppercase tracking-[0.28em] transition-shadow duration-500 ${styles[variant]} ${className}`}
+      className={`group relative isolate inline-flex min-h-12 items-center justify-center overflow-hidden rounded-full px-5 text-[12px] font-medium uppercase tracking-[0.18em] sm:px-7 sm:tracking-[0.28em] transition-shadow duration-500 ${styles[variant]} ${className}`}
       {...rest}
     >
       {/* Blade-light sweep on hover */}

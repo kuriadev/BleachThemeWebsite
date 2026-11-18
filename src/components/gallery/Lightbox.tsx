@@ -4,7 +4,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { useId, useRef } from "react";
 import type { GalleryPiece } from "@/content/gallery";
-import { audio } from "@/lib/audio/engine";
+import { useSoundFX } from "@/hooks/useSoundFX";
 import { useDialog } from "@/lib/a11y/useDialog";
 import { ease } from "@/lib/tokens";
 import { InkPlaceholder } from "./InkPlaceholder";
@@ -20,6 +20,7 @@ interface Props {
 
 /** Glass lightbox: ← → to browse, Esc to close, focus trapped inside. */
 export function Lightbox({ pieces, index, mode, inkClass, onIndex, onClose }: Props) {
+  const fx = useSoundFX();
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
@@ -27,7 +28,7 @@ export function Lightbox({ pieces, index, mode, inkClass, onIndex, onClose }: Pr
   const n = pieces.length;
 
   const go = (delta: number) => {
-    audio.play("click");
+    fx.play("click");
     onIndex((index + delta + n) % n);
   };
 
@@ -104,7 +105,7 @@ export function Lightbox({ pieces, index, mode, inkClass, onIndex, onClose }: Pr
           ref={closeRef}
           type="button"
           onClick={() => {
-            audio.play("click");
+            fx.play("click");
             onClose();
           }}
           aria-label="Close lightbox"

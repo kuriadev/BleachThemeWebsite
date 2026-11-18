@@ -3,7 +3,7 @@
  * Every sound is synthesised so it stays tiny, tweakable and on-brand.
  * Audio is opt-in; nothing is created until the user enables sound.
  */
-type Voice = "click" | "hover" | "shatter" | "open" | "unsheathe";
+export type Voice = "click" | "hover" | "shatter" | "open" | "unsheathe";
 
 class AudioEngine {
   private ctx: AudioContext | null = null;

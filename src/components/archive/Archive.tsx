@@ -3,7 +3,7 @@
 import { AnimatePresence, LayoutGroup } from "motion/react";
 import { useState } from "react";
 import { categories, type Project, type ProjectCategory } from "@/content/projects";
-import { audio } from "@/lib/audio/engine";
+import { useSoundFX } from "@/hooks/useSoundFX";
 import { DossierCard } from "./DossierCard";
 import { SealDrawer } from "./SealDrawer";
 
@@ -11,6 +11,7 @@ type Filter = ProjectCategory | "all";
 
 /** Filterable grid of SRDI dossiers + the Release Seal drawer. */
 export function Archive({ projects }: { projects: Project[] }) {
+  const fx = useSoundFX();
   const [filter, setFilter] = useState<Filter>("all");
   const [openId, setOpenId] = useState<string | null>(null);
   const visible = filter === "all" ? projects : projects.filter((p) => p.category === filter);
@@ -26,7 +27,7 @@ export function Archive({ projects }: { projects: Project[] }) {
             type="button"
             aria-pressed={filter === c.id}
             onClick={() => {
-              audio.play("click");
+              fx.play("click");
               setFilter(c.id);
             }}
             className="flex min-h-11 items-center gap-2 rounded-full border border-white/12 px-5 text-[11px] uppercase tracking-[0.28em] text-ghost-muted transition-colors hover:border-white/30 hover:text-ghost aria-pressed:border-ghost aria-pressed:bg-ghost aria-pressed:text-void"

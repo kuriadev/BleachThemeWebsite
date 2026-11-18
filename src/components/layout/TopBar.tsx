@@ -1,7 +1,10 @@
 "use client";
 
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { useSoundFX } from "@/hooks/useSoundFX";
+import { ease } from "@/lib/tokens";
 import { useExperience } from "@/providers/ExperienceProvider";
-import { audio } from "@/lib/audio/engine";
 
 const NAV = [
   { href: "#hero", label: "Illusion", kanji: "鏡" },
@@ -11,12 +14,36 @@ const NAV = [
 ] as const;
 
 /**
- * Floating liquid-glass navbar: brand, section links, and three toggles
- * (ambient soundscape, UI sound effects, reduced motion). Every toggle is a
- * real button with aria-pressed and a ≥44px hit target.
+ * "Soul Society OS" dock: a floating liquid-glass pill with brand, section
+ * links (lg+), three toggles (ambient, SFX, reduced motion) and, below lg,
+ * an animated hamburger that opens a glass drawer. Every control is a real
+ * button with a ≥44px hit target.
  */
 export function TopBar() {
   const { ambient, sfx, userReducedMotion, reducedMotion, toggleAmbient, toggleSfx, toggleMotion } = useExperience();
+  const fx = useSoundFX();
+  const [open, setOpen] = useState(false);
+  const menuBtn = useRef<HTMLButtonElement>(null);
+
+  // Esc closes the drawer and returns focus to the hamburger; so does
+  // growing past the lg breakpoint.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        menuBtn.current?.focus();
+      }
+    };
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const onMq = () => mq.matches && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    mq.addEventListener("change", onMq);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      mq.removeEventListener("change", onMq);
+    };
+  }, [open]);
 
   return (
     <header className="pointer-events-none fixed inset-x-0 top-3 z-50 flex justify-center px-3 md:top-5">
@@ -27,7 +54,8 @@ export function TopBar() {
         Skip to content
       </a>
 
-      <div className="glass pointer-events-auto flex h-14 w-full max-w-[1100px] items-center justify-between gap-2 rounded-full pl-5 pr-1.5 md:pl-6">
+      <div className="pointer-events-auto relative w-full max-w-[1100px]">
+      <div className="glass flex h-14 w-full items-center justify-between gap-2 rounded-full pl-5 pr-1.5 [--blur-glass:var(--blur-dock)] md:pl-6">
         <a href="#hero" className="group flex shrink-0 items-baseline gap-2" aria-label="KYŌKA // ARCHIVE, back to top">
           <span className="text-[12px] font-semibold tracking-[0.42em] text-ghost">KYŌKA</span>
           <span aria-hidden className="text-[12px] text-hogyoku-bright">{"//"}</span>
@@ -42,7 +70,7 @@ export function TopBar() {
               <li key={n.href}>
                 <a
                   href={n.href}
-                  onMouseEnter={() => audio.play("hover")}
+                  {...fx.bind({ hover: "hover", press: "click" })}
                   className="group flex min-h-11 items-center gap-2 rounded-full px-4 text-[11px] uppercase tracking-[0.3em] text-ghost-muted transition-colors hover:bg-white/[0.06] hover:text-ghost"
                 >
                   <span aria-hidden className="font-kanji text-[12px] text-ghost-faint transition-colors group-hover:text-hogyoku-bright">
@@ -70,7 +98,68 @@ export function TopBar() {
           >
             <MotionGlyph reduced={reducedMotion} />
           </ToggleButton>
+          <button
+            ref={menuBtn}
+            type="button"
+            aria-expanded={open}
+            aria-controls="dock-drawer"
+            aria-label={open ? "Close menu" : "Open menu"}
+            onClick={() => {
+              fx.play(open ? "click" : "open");
+              setOpen((o) => !o);
+            }}
+            className="ml-1 flex size-11 items-center justify-center rounded-full bg-white/[0.06] text-ghost transition-colors hover:bg-white/[0.12] lg:hidden"
+          >
+            <Hamburger open={open} />
+          </button>
         </div>
+      </div>
+
+      <AnimatePresence>
+        {open && (
+          <motion.nav
+            id="dock-drawer"
+            aria-label="Sections"
+            initial={{ opacity: 0, y: -12, scale: 0.98, filter: "blur(8px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -8, scale: 0.98, filter: "blur(6px)" }}
+            transition={{ duration: 0.45, ease: ease.reiatsu }}
+            className="glass absolute inset-x-0 top-[calc(100%+0.5rem)] origin-top overflow-hidden rounded-[28px] p-2 [--blur-glass:40px] lg:hidden"
+            style={{ backgroundColor: "rgb(5 5 5 / 0.94)" }}
+          >
+            <ul>
+              {NAV.map((n, i) => (
+                <motion.li
+                  key={n.href}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 + i * 0.05, duration: 0.4, ease: ease.reiatsu }}
+                >
+                  <a
+                    href={n.href}
+                    onClick={() => {
+                      fx.play("click");
+                      setOpen(false);
+                    }}
+                    className="group flex min-h-14 items-center gap-4 rounded-2xl px-4 text-ghost transition-colors hover:bg-white/[0.06] focus-visible:bg-white/[0.06]"
+                  >
+                    <span aria-hidden className="font-kanji text-xl text-hogyoku-bright">
+                      {n.kanji}
+                    </span>
+                    <span className="text-sm uppercase tracking-[0.3em]">{n.label}</span>
+                    <span aria-hidden className="ml-auto font-mono text-[10px] text-ghost-faint">
+                      {String(i).padStart(2, "0")}
+                    </span>
+                  </a>
+                </motion.li>
+              ))}
+            </ul>
+            <p className="border-t border-white/10 px-4 pb-2 pt-3 text-[10px] uppercase tracking-[0.3em] text-ghost-faint">
+              Sound {sfx ? "on" : "off"} · Ambient {ambient ? "on" : "off"} · Motion {reducedMotion ? "reduced" : "full"}
+            </p>
+          </motion.nav>
+        )}
+      </AnimatePresence>
       </div>
     </header>
   );
@@ -89,6 +178,7 @@ function ToggleButton({
   text: string;
   children: React.ReactNode;
 }) {
+  const fx = useSoundFX();
   return (
     <button
       type="button"
@@ -97,7 +187,7 @@ function ToggleButton({
       title={label}
       onClick={() => {
         onClick();
-        audio.play("click");
+        fx.play("click");
       }}
       className="flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full px-3 text-[10px] uppercase tracking-[0.28em] text-ghost-muted transition-colors hover:bg-white/[0.06] hover:text-ghost aria-pressed:bg-white/[0.08] aria-pressed:text-ghost"
     >
@@ -144,5 +234,15 @@ function MotionGlyph({ reduced }: { reduced: boolean }) {
         <path d="M4.5 9.5c1.2-3 5.8-3 7 0" strokeWidth="1.4" strokeLinecap="round" />
       )}
     </svg>
+  );
+}
+
+function Hamburger({ open }: { open: boolean }) {
+  const line = "absolute left-0 h-[1.5px] w-full rounded-full bg-current transition-transform duration-500 ease-[var(--ease-blade)]";
+  return (
+    <span aria-hidden className="relative block h-3 w-[18px]">
+      <span className={line} style={{ top: 0, transform: open ? "translateY(5.25px) rotate(45deg)" : "none" }} />
+      <span className={line} style={{ bottom: 0, transform: open ? "translateY(-5.25px) rotate(-45deg)" : "none" }} />
+    </span>
   );
 }

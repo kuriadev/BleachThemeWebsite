@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { useId, useRef } from "react";
 import type { Character } from "@/content/characters";
-import { audio } from "@/lib/audio/engine";
+import { useSoundFX } from "@/hooks/useSoundFX";
 import { ease } from "@/lib/tokens";
 import { useDialog } from "@/lib/a11y/useDialog";
 import { accentMap } from "./accent";
@@ -19,6 +19,7 @@ interface Props {
  * to the card, and inertial scroll is paused while open.
  */
 export function CodexDialog({ character: c, onClose }: Props) {
+  const fx = useSoundFX();
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
@@ -28,7 +29,7 @@ export function CodexDialog({ character: c, onClose }: Props) {
   useDialog({ panelRef, initialFocusRef: closeRef, onClose });
 
   const close = () => {
-    audio.play("click");
+    fx.play("click");
     onClose();
   };
 

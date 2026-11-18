@@ -3,7 +3,7 @@
 import { motion, useMotionTemplate, useMotionValue, useSpring } from "motion/react";
 import { useRef } from "react";
 import type { Character } from "@/content/characters";
-import { audio } from "@/lib/audio/engine";
+import { useSoundFX } from "@/hooks/useSoundFX";
 import { ease, spring } from "@/lib/tokens";
 import { useExperience } from "@/providers/ExperienceProvider";
 import { accentMap } from "./accent";
@@ -21,6 +21,7 @@ interface Props {
  * tilt. The whole card is one <button> so it is a single, obvious tab stop.
  */
 export function CodexCard({ character: c, index, onOpen, onFocusCard }: Props) {
+  const fx = useSoundFX();
   const { reducedMotion } = useExperience();
   const ref = useRef<HTMLButtonElement>(null);
   const accent = accentMap[c.accent];
@@ -62,10 +63,10 @@ export function CodexCard({ character: c, index, onOpen, onFocusCard }: Props) {
         layoutId={`codex-${c.id}`}
         onPointerMove={onMove}
         onPointerLeave={onLeave}
-        onMouseEnter={() => audio.play("hover")}
+        onMouseEnter={() => fx.play("hover")}
         onFocus={(e) => onFocusCard?.(e.currentTarget)}
         onClick={() => {
-          audio.play("open");
+          fx.play("open");
           onOpen(c.id);
         }}
         data-accent={c.accent}

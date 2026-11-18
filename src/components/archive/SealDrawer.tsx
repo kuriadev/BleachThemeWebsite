@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { useEffect, useId, useRef } from "react";
 import type { Project } from "@/content/projects";
-import { audio } from "@/lib/audio/engine";
+import { useSoundFX } from "@/hooks/useSoundFX";
 import { useDialog } from "@/lib/a11y/useDialog";
 import { useMediaQuery } from "@/lib/motion/useMediaQuery";
 import { ease } from "@/lib/tokens";
@@ -16,6 +16,7 @@ import { KidoTag, ThreatBadge } from "./badges";
  * on demand so it never touches the initial bundle.
  */
 export function SealDrawer({ project: p, onClose }: { project: Project; onClose: () => void }) {
+  const fx = useSoundFX();
   const { reducedMotion } = useExperience();
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -49,7 +50,7 @@ export function SealDrawer({ project: p, onClose }: { project: Project; onClose:
   }, [reducedMotion]);
 
   const close = () => {
-    audio.play("click");
+    fx.play("click");
     onClose();
   };
 

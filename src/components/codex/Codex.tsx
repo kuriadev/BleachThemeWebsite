@@ -9,6 +9,7 @@ import { CodexRail } from "./CodexRail";
 export function Codex() {
   return (
     <section id="codex" aria-labelledby="codex-title" className="relative isolate bg-obsidian">
+      <span aria-hidden className="reiatsu-smoke pointer-events-none absolute inset-x-0 top-0 h-64 -translate-y-1/3 opacity-90" />
       <CodexGlow />
       <div className="mx-auto max-w-[1600px] px-5 pt-32 md:px-10 md:pt-44">
         <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
@@ -17,13 +18,13 @@ export function Codex() {
               <span aria-hidden className="h-px w-10 bg-bankai" />
               Chapter 03 · Zanpakutō Codex
             </p>
-            <h2 id="codex-title" className="text-5xl font-semibold uppercase leading-[0.9] tracking-tight md:text-8xl">
+            <h2 id="codex-title" className="text-h2 font-semibold uppercase">
               Those who
               <br />
               <span className="text-ghost-muted">carry a soul</span>
             </h2>
           </div>
-          <p className="max-w-sm text-sm leading-relaxed text-ghost-muted md:text-base">
+          <p className="max-w-sm text-lede text-ghost-muted">
             Every blade is a reflection of the soul that wields it. Hover to read its light; open a card for lore, release
             and power profile.
           </p>

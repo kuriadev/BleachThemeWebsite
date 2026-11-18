@@ -11,7 +11,7 @@ import {
 } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import aizen from "../../../public/images/hero-aizen.png";
-import { audio } from "@/lib/audio/engine";
+import { useSoundFX } from "@/hooks/useSoundFX";
 import { ease, spring } from "@/lib/tokens";
 import { useExperience } from "@/providers/ExperienceProvider";
 import { MagneticButton } from "@/components/ui/MagneticButton";
@@ -36,6 +36,7 @@ const MASK = [
 const FILTER_ID = "kyoka-distort";
 
 export function Hero() {
+  const fx = useSoundFX();
   const { reducedMotion } = useExperience();
   const sectionRef = useRef<HTMLElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -100,7 +101,7 @@ export function Hero() {
   const shatter = useCallback(
     (point?: { x: number; y: number }) => {
       if (phase !== "idle") return;
-      audio.play("shatter");
+      fx.play("shatter");
       window.dispatchEvent(new Event(REIATSU_BURST_EVENT));
       if (reducedMotion) {
         // Respect the preference: a brief cross-fade flash, no flying shards.
@@ -115,7 +116,7 @@ export function Hero() {
         window.setTimeout(() => setPhase("idle"), 2900),
       );
     },
-    [phase, reducedMotion],
+    [phase, reducedMotion, fx],
   );
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
@@ -148,7 +149,7 @@ export function Hero() {
 
       {/* L0 — ambient violet bloom + kanji watermark */}
       <Layer depth={0.15} x={spx} y={spy} className="-z-30">
-        <div className="absolute left-1/2 top-[38%] h-[80vmin] w-[110vmin] -translate-x-1/2 -translate-y-1/2 animate-reiatsu-pulse rounded-full bg-[radial-gradient(closest-side,rgba(123,44,191,0.55),rgba(123,44,191,0.12)_55%,transparent)] blur-2xl" />
+        <div className="absolute left-1/2 top-[38%] h-[80vmin] w-[110vmin] -translate-x-1/2 -translate-y-1/2 animate-reiatsu-pulse aura-kyoka rounded-full blur-2xl" />
         <span
           aria-hidden
           className="absolute left-[2vw] top-1/2 -translate-y-1/2 select-none whitespace-nowrap font-kanji text-[18vh] font-black leading-none text-ghost/[0.04] text-vertical"
@@ -220,13 +221,13 @@ export function Hero() {
           <span className="mt-2 h-16 w-px bg-gradient-to-b from-ghost/40 to-transparent" />
         </motion.div>
 
-        <div className="grid items-end gap-8 md:grid-cols-[1fr_auto]">
+        <div className="grid items-end gap-6 sm:gap-8 lg:grid-cols-[1fr_auto]">
           <div>
             <motion.p
               initial={{ opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 1, delay: 0.3, ease: ease.reiatsu }}
-              className="mb-4 flex items-center gap-3 text-[11px] uppercase tracking-[0.4em] text-ghost-muted"
+              className="mb-4 flex items-center gap-3 text-eyebrow uppercase tracking-[0.3em] text-ghost-muted sm:tracking-[0.4em] [@media(max-height:620px)]:hidden"
             >
               <span aria-hidden className="h-px w-10 bg-hogyoku-bright" />
               Kyōka Suigetsu · Complete Hypnosis
@@ -242,7 +243,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.2, delay: 1.25, ease: ease.reiatsu }}
-              className="mt-6 max-w-md text-balance text-base leading-relaxed text-ghost-muted md:text-lg"
+              className="mt-5 max-w-md text-balance text-lede text-ghost-muted md:mt-6 [@media(max-height:620px)]:hidden"
               id="hero-title-desc"
             >
               Everything you have seen was decided before you looked. Break the mirror, and see what was always there.

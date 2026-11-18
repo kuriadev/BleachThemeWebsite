@@ -24,7 +24,7 @@ bleach-site/
 │  │  ├─ page.tsx                    ← Server Component: Hero → Gallery → Poem → Archive → Codex
 │  │  └─ globals.css                 ← DESIGN TOKENS (Tailwind v4 @theme = the config)
 │  ├─ components/
-│  │  ├─ layout/TopBar.tsx           ← floating glass pill: nav + Ambient / SFX / Motion toggles
+│  │  ├─ layout/TopBar.tsx           ← "Soul Society OS" dock: nav, toggles, hamburger + glass drawer (< lg)
 │  │  ├─ hero/
 │  │  │  ├─ Hero.tsx                 ← radial mask, parallax, glass shards, ripple, shatter, CTAs
 │  │  │  └─ ShatterImage.tsx         ← <Image> for LCP; swaps to clip-path shards on shatter
@@ -53,6 +53,7 @@ bleach-site/
 │  │  │  └─ accent.ts                ← accent → glow / AA-safe text colour
 │  │  ├─ ui/MagneticButton.tsx, SplitReveal.tsx
 │  │  └─ webgl/ReiatsuCanvas.tsx, ReiatsuField.tsx  ← three.js points + custom shaders
+│  ├─ hooks/useSoundFX.ts            ← tactile audio for any element (play / bind)
 │  ├─ content/                       ← all copy & data (swap for a CMS later)
 │  │  ├─ gallery.ts                  ← gallery plates
 │  │  ├─ projects.ts                 ← SRDI dossiers
@@ -105,6 +106,37 @@ Tailwind v4 no longer uses `tailwind.config.ts`; the `@theme` block in `src/app/
 **Custom utilities:** `glass` (liquid-glass surface: layered gradient, inner highlights, backdrop blur + saturate) and `text-vertical` (upright vertical-rl for kanji).
 
 If you prefer a JS config (e.g. for tooling), add `@config "../../tailwind.config.ts";` at the top of `globals.css`. Tailwind v4 still honours it.
+
+---
+
+### Token reference (brief names → classes)
+
+| Token | Value | Use |
+|---|---|---|
+| `bankai-cyan` (`bankai`) | `#00F0FF` | rare energy highlights, focus ring |
+| `hollow-crimson` (`hollow`) | `#FF1E42` | threat states, critical alerts |
+| `kyoka-violet` (`hogyoku`) | `#7B2CBF` | Aizen's aura |
+| `kyoka-deep` | `#3B0764` | bottom stop of the velvet aura |
+| `aura-kyoka` utility | violet → `#3B0764` radial + faint cyan | hero bloom |
+| `reiatsu-smoke` utility | radial + conic haze, `blur(var(--blur-aura))` | bleeds across every section seam |
+| `--blur-glass / --blur-dock / --blur-aura` | 18 / 24 / 64 px | glass panels, nav dock, auras |
+| `text-display`, `text-h2`, `text-lede`, `text-eyebrow` | `clamp()` | fluid type from 320 px to 2560 px; `text-display` also caps by `svh` so short phones keep the face clear |
+
+**Why there is no `tailwind.config.ts`:** Tailwind v4 reads its theme from CSS, so the `@theme` block in `globals.css` *is* the config (every `--color-*`, `--text-*`, `--blur-*`, `--ease-*` and `--animate-*` becomes a utility). A JS config would only duplicate it. JS-side mirrors (eases, springs) live in `src/lib/tokens.ts`. Vanilla Extract was considered and left out: Tailwind + CSS Modules already cover every style here, and a third styling system would add build cost without adding capability.
+
+### Navigation dock
+
+A floating `glass` pill, fixed and centred (`max-w-[1100px]`). At `lg` and up it shows section links; below `lg` a hamburger (two lines that rotate into an ×) opens a glass drawer under the dock. The drawer has `aria-expanded` / `aria-controls`, staggered items, 56 px rows, Esc to close with focus returned to the button, and it closes on link tap or when the viewport grows past `lg`.
+
+### useSoundFX
+
+```tsx
+const fx = useSoundFX();
+<button {...fx.bind({ hover: "hover", press: "unsheathe" })} onClick={open}>Release seal</button>
+fx.play("click");
+```
+
+`bind` returns pointer/keyboard handlers to spread, so they never clash with your own `onClick`. Hover sounds only fire for a mouse (touch has no hover). Everything is silent until SFX is switched on in the dock. Voices: `click`, `hover`, `open`, `unsheathe`, `shatter`.
 
 ---
 
@@ -222,7 +254,7 @@ Each card carries `data-accent`. `CodexGlow` listens (delegated) for pointer and
 
 - **GSAP ScrollTrigger:** for the Arcs timeline if you want scrubbed, multi-step pinned sequences. Register in a client component, tie it to Lenis with `lenis.on("scroll", ScrollTrigger.update)` and `gsap.ticker.add(t => lenis.raf(t * 1000))`, then remove the provider's own rAF loop. Gate every timeline on `reducedMotion`.
 - **Anime.js (in use):** the Release Seal stroke draw. Pattern: `import("animejs")` inside `useEffect`, keep the returned animation, `revert()` on cleanup, skip when `reducedMotion`.
-- **Lottie (optional):** use `@lottiefiles/dotlottie-react`, lazy-loaded, with `autoplay={!reducedMotion}` and `loop={false}`. A good fit for a brush-stroke loader or an animated seal if you'd rather author it in After Effects.
+- **Lottie (optional, not installed):** use `@lottiefiles/dotlottie-react`, lazy-loaded, with `autoplay={!reducedMotion}` and `loop={false}`. A good fit for a brush-stroke loader or an animated seal if you'd rather author it in After Effects.
 
 Motion covers everything else, so GSAP and Lottie are left out to keep the bundle lean.
 
@@ -287,6 +319,16 @@ npm run build && npm start
 npm run lint
 npx tsc --noEmit   # after a build (it generates next-env.d.ts)
 ```
+
+**Testing responsiveness and touch targets:**
+
+1. Chrome DevTools → device toolbar. Check at least 320×568 (iPhone SE 1st gen), 390×844, 430×932 (Pro Max), 768×1024, 1024×768, 1440×900 and 2560×1440. There should be no horizontal scroll at any width (`document.documentElement.scrollWidth === innerWidth`).
+2. Turn on "Show rulers" and confirm every control is at least 44×44 px (dock buttons are `size-11`, drawer rows 56 px).
+3. On a real phone, swipe the gallery and the Codex row, open a dossier (it becomes a bottom sheet) and the lightbox, and check that rotating the device keeps his face in frame.
+4. Emulate `prefers-reduced-motion: reduce` (Rendering panel) and use the Motion toggle: no smooth scroll, tilt, ripple or ink-in, and everything stays readable.
+5. Keyboard only: Tab through the dock, gallery (← →), filters, drawer and Codex; Esc closes every overlay and focus returns where it was.
+
+**Compiling for Vercel:** `npm run build` must finish with `○ /` (static). Push to `main` (or merge a PR) and Vercel builds automatically; preview deployments are created for other branches.
 
 **WebGL locally:** works in any modern browser. If particles don't appear, check `chrome://gpu` (hardware acceleration must be on); the CSS bloom is the fallback, so the page still looks right.
 
