@@ -1,4 +1,5 @@
 import { characters } from "@/content/characters";
+import { CodexGlow } from "./CodexGlow";
 import { CodexRail } from "./CodexRail";
 
 /**
@@ -7,13 +8,14 @@ import { CodexRail } from "./CodexRail";
  */
 export function Codex() {
   return (
-    <section id="codex" aria-labelledby="codex-title" className="relative bg-obsidian">
+    <section id="codex" aria-labelledby="codex-title" className="relative isolate bg-obsidian">
+      <CodexGlow />
       <div className="mx-auto max-w-[1600px] px-5 pt-32 md:px-10 md:pt-44">
         <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
           <div>
             <p className="mb-4 flex items-center gap-3 text-[11px] uppercase tracking-[0.4em] text-ghost-muted">
               <span aria-hidden className="h-px w-10 bg-bankai" />
-              Chapter 01 · Zanpakutō Codex
+              Chapter 03 · Zanpakutō Codex
             </p>
             <h2 id="codex-title" className="text-5xl font-semibold uppercase leading-[0.9] tracking-tight md:text-8xl">
               Those who

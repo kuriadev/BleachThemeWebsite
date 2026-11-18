@@ -17,13 +17,13 @@ const kanji = Noto_Serif_JP({
 });
 
 export const metadata: Metadata = {
-  title: "BLEACH — Kyōka Suigetsu",
+  title: "KYŌKA // ARCHIVE",
   description:
-    "An immersive, unofficial Bleach fan experience: shatter the illusion, then walk the Zanpakutō Codex.",
+    "An immersive, unofficial Bleach fan archive: shatter the illusion, walk the gallery, open the SRDI files and the Zanpakutō Codex.",
   robots: { index: true, follow: true },
   openGraph: {
-    title: "BLEACH — Kyōka Suigetsu",
-    description: "An immersive, unofficial Bleach fan experience.",
+    title: "KYŌKA // ARCHIVE",
+    description: "An immersive, unofficial Bleach fan archive.",
     type: "website",
   },
 };

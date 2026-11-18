@@ -1,11 +1,11 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useEffect, useId, useRef } from "react";
+import { useId, useRef } from "react";
 import type { Character } from "@/content/characters";
 import { audio } from "@/lib/audio/engine";
 import { ease } from "@/lib/tokens";
-import { useExperience } from "@/providers/ExperienceProvider";
+import { useDialog } from "@/lib/a11y/useDialog";
 import { accentMap } from "./accent";
 
 interface Props {
@@ -19,46 +19,13 @@ interface Props {
  * to the card, and inertial scroll is paused while open.
  */
 export function CodexDialog({ character: c, onClose }: Props) {
-  const { lockScroll } = useExperience();
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const descId = useId();
   const accent = accentMap[c.accent];
 
-  useEffect(() => {
-    const opener = document.activeElement as HTMLElement | null;
-    lockScroll(true);
-    closeRef.current?.focus({ preventScroll: true });
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-      if (e.key !== "Tab" || !panelRef.current) return;
-      const f = panelRef.current.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      );
-      if (!f.length) return;
-      const first = f[0];
-      const last = f[f.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      lockScroll(false);
-      opener?.focus({ preventScroll: true });
-    };
-  }, [lockScroll, onClose]);
+  useDialog({ panelRef, initialFocusRef: closeRef, onClose });
 
   const close = () => {
     audio.play("click");

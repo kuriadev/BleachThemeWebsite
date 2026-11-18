@@ -1,0 +1,95 @@
+/*
+ * Scoped styles for the Spatial Gallery. CSS Modules keep the heavy filter
+ * rules off the global stylesheet and out of every other component.
+ */
+
+.track {
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  cursor: grab;
+  overscroll-behavior-x: contain;
+}
+.track::-webkit-scrollbar {
+  display: none;
+}
+.track[data-dragging="true"] {
+  cursor: grabbing;
+  scroll-snap-type: none;
+}
+.track[data-dragging="true"] .item {
+  pointer-events: none;
+}
+
+.item {
+  scroll-snap-align: center;
+  transform: perspective(1400px) rotateY(var(--tilt, 0deg)) translateZ(var(--depth, 0px));
+  transition: transform 0.6s var(--ease-reiatsu);
+  will-change: transform;
+}
+
+.media {
+  transition:
+    filter 0.6s var(--ease-reiatsu),
+    transform 1.2s var(--ease-reiatsu);
+}
+.item:hover .media,
+.item:focus-visible .media {
+  transform: scale(1.04);
+  filter: url(#gallery-ripple);
+}
+
+/* ── Ink-wash mode ─────────────────────────────────────────── */
+.ink .media {
+  filter: url(#ink-wash);
+}
+.ink .item:hover .media,
+.ink .item:focus-visible .media {
+  filter: url(#ink-wash) url(#gallery-ripple);
+}
+.ink .tone {
+  opacity: 0;
+}
+.ink .paper {
+  opacity: 1;
+}
+
+.paper {
+  opacity: 0;
+  transition: opacity 0.8s var(--ease-reiatsu);
+  mix-blend-mode: multiply;
+  background:
+    radial-gradient(120% 90% at 50% 40%, transparent 55%, rgb(0 0 0 / 0.55)),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.02) 0 1px, transparent 1px 3px);
+}
+
+.tone {
+  transition: opacity 0.8s var(--ease-reiatsu);
+}
+
+/* Motion off: no tilt, no ripple distortion. */
+@media (prefers-reduced-motion: reduce) {
+  .item {
+    transform: none;
+  }
+  .item:hover .media,
+  .item:focus-visible .media {
+    transform: none;
+    filter: none;
+  }
+  .ink .item:hover .media,
+  .ink .item:focus-visible .media {
+    filter: url(#ink-wash);
+  }
+}
+:global(html[data-motion=reduced]) .item {
+  transform: none;
+}
+:global(html[data-motion=reduced]) .item:hover .media,
+:global(html[data-motion=reduced]) .item:focus-visible .media {
+  transform: none;
+  filter: none;
+}
+:global(html[data-motion=reduced]) .ink .item:hover .media,
+:global(html[data-motion=reduced]) .ink .item:focus-visible .media {
+  filter: url(#ink-wash);
+}

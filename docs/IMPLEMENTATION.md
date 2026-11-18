@@ -1,8 +1,8 @@
-# BLEACH — Kyōka Suigetsu · Implementation Guide
+# KYŌKA // ARCHIVE · Implementation Guide
 
-An unofficial, gallery-grade Bleach fan experience. This doc covers the architecture, the design tokens, how the WebGL layer and motion libraries are wired, and how to extend it.
+An unofficial, gallery-grade Bleach fan archive built around Sōsuke Aizen. This doc covers the architecture, the design tokens, each section, how the WebGL layer and motion libraries are wired, how to add your own art and projects, and how to run it.
 
-**Stack (as built):** Next.js 16 App Router (Turbopack) · React 19 · Tailwind CSS v4 · Motion 12 (`motion/react`, formerly Framer Motion) · three.js (raw, no R3F) · Lenis · Web Audio API (procedural, no audio files).
+**Stack (as built):** Next.js 16 App Router (Turbopack) · React 19 · Tailwind CSS v4 + CSS Modules · Motion 12 (`motion/react`, formerly Framer Motion) · Anime.js 4 (SVG seal draw) · three.js (raw, no R3F) · Lenis · Web Audio API (procedural, no audio files).
 
 ---
 
@@ -10,53 +10,73 @@ An unofficial, gallery-grade Bleach fan experience. This doc covers the architec
 
 ```
 bleach-site/
-├─ docs/IMPLEMENTATION.md          ← this file
-├─ next.config.ts                  ← image qualities/formats, security headers
+├─ docs/IMPLEMENTATION.md            ← this file
+├─ next.config.ts                    ← images, security headers, Tailwind loader (globals.css only)
+├─ public/
+│  └─ images/
+│     ├─ hero-aizen.png              ← supplied hero art, 1672×941 (statically imported → blur placeholder)
+│     └─ aizen-portrait.png          ← supplied circular portrait (gallery plate + icon source)
+│  (add public/audio/ and public/video/ here if you ever ship recorded sound or dossier previews)
 ├─ src/
 │  ├─ app/
 │  │  ├─ favicon.ico, icon.png, apple-icon.png ← site icons (file conventions)
-│  │  ├─ layout.tsx                ← fonts, pre-paint prefs script, providers, TopBar
-│  │  ├─ page.tsx                  ← Server Component: composes sections
-│  │  └─ globals.css               ← DESIGN TOKENS (Tailwind v4 @theme = the config)
-│  ├─ assets/
-│  │  └─ aizen-hero.png            ← supplied hero art, 1672×941 (static import → blur placeholder)
+│  │  ├─ layout.tsx                  ← fonts, pre-paint prefs script, providers, floating navbar
+│  │  ├─ page.tsx                    ← Server Component: Hero → Gallery → Poem → Archive → Codex
+│  │  └─ globals.css                 ← DESIGN TOKENS (Tailwind v4 @theme = the config)
 │  ├─ components/
-│  │  ├─ layout/TopBar.tsx         ← nav + Sound / Motion toggles (aria-pressed)
+│  │  ├─ layout/TopBar.tsx           ← floating glass pill: nav + Ambient / SFX / Motion toggles
 │  │  ├─ hero/
-│  │  │  ├─ Hero.tsx               ← parallax layers, distortion, shatter sequence, CTAs
-│  │  │  └─ ShatterImage.tsx       ← <Image> for LCP; swaps to clip-path shards on shatter
-│  │  ├─ codex/
-│  │  │  ├─ Codex.tsx              ← Server Component: heading + data
-│  │  │  ├─ CodexRail.tsx          ← pinned horizontal scroll (desktop) / native snap row
-│  │  │  ├─ CodexCard.tsx          ← liquid-glass card, pointer light, 3D tilt
-│  │  │  ├─ CodexDialog.tsx        ← shared-layout modal: lore, release, stat meters
-│  │  │  └─ accent.ts              ← accent → glow / AA-safe text colour
-│  │  ├─ ui/
-│  │  │  ├─ MagneticButton.tsx     ← magnetic CTA w/ inner parallax + audio
-│  │  │  └─ SplitReveal.tsx        ← staggered per-glyph reveal (SR-friendly)
-│  │  └─ webgl/
-│  │     ├─ ReiatsuCanvas.tsx      ← next/dynamic (ssr:false) + idle mount gate
-│  │     └─ ReiatsuField.tsx       ← three.js points + custom shaders
-│  ├─ content/characters.ts        ← typed Codex data (swap for a CMS later)
+│  │  │  ├─ Hero.tsx                 ← radial mask, parallax, glass shards, ripple, shatter, CTAs
+│  │  │  └─ ShatterImage.tsx         ← <Image> for LCP; swaps to clip-path shards on shatter
+│  │  ├─ gallery/                    ← JET // Editorial
+│  │  │  ├─ GallerySection.tsx       ← Server shell (heading)
+│  │  │  ├─ Gallery.tsx              ← drag/inertia track, depth tilt, colour ↔ ink toggle
+│  │  │  ├─ Gallery.module.css       ← track, tilt, hover distortion, ink-wash (CSS Module)
+│  │  │  ├─ GalleryFilters.tsx       ← SVG filters: #gallery-ripple, #ink-wash
+│  │  │  ├─ InkPlaceholder.tsx       ← original ink composition for empty slots
+│  │  │  └─ Lightbox.tsx             ← glass dialog, ← → navigation
+│  │  ├─ archive/                    ← SRDI Experimental Archives
+│  │  │  ├─ ArchiveSection.tsx       ← Server shell (heading)
+│  │  │  ├─ Archive.tsx              ← category filters + animated grid
+│  │  │  ├─ DossierCard.tsx          ← threat badge, Kidō tags, hover video/scanline preview
+│  │  │  ├─ SealDrawer.tsx           ← "Release Seal" drawer / bottom sheet, Anime.js seal draw
+│  │  │  ├─ badges.tsx, kido.ts      ← ThreatBadge, KidoTag, level + school metadata
+│  │  ├─ poem/
+│  │  │  ├─ VolumePoem.tsx           ← "The Soul's Monologue" interlude (Server)
+│  │  │  └─ InkLines.tsx             ← scroll-linked per-word ink reveal
+│  │  ├─ codex/                      ← Zanpakutō Codex
+│  │  │  ├─ Codex.tsx                ← Server Component: heading + data
+│  │  │  ├─ CodexGlow.tsx            ← section light that follows the active card's accent
+│  │  │  ├─ CodexRail.tsx            ← pinned horizontal scroll (desktop) / native snap row
+│  │  │  ├─ CodexCard.tsx            ← liquid-glass card, pointer light, 3D tilt
+│  │  │  ├─ CodexDialog.tsx          ← lore, release, ability meters
+│  │  │  └─ accent.ts                ← accent → glow / AA-safe text colour
+│  │  ├─ ui/MagneticButton.tsx, SplitReveal.tsx
+│  │  └─ webgl/ReiatsuCanvas.tsx, ReiatsuField.tsx  ← three.js points + custom shaders
+│  ├─ content/                       ← all copy & data (swap for a CMS later)
+│  │  ├─ gallery.ts                  ← gallery plates
+│  │  ├─ projects.ts                 ← SRDI dossiers
+│  │  ├─ characters.ts               ← Codex
+│  │  └─ poem.ts                     ← interlude verse (original)
 │  ├─ lib/
-│  │  ├─ tokens.ts                 ← JS mirror of tokens (eases, springs, colours)
-│  │  ├─ prefs.ts                  ← external store + pre-paint init script
-│  │  ├─ audio/engine.ts           ← procedural Web Audio (click, hover, shatter, hum)
-│  │  └─ motion/
-│  │     ├─ shards.ts              ← deterministic mirror triangulation
-│  │     └─ useMediaQuery.ts
-│  └─ providers/ExperienceProvider.tsx ← sound + reduced-motion + Lenis + MotionConfig
+│  │  ├─ tokens.ts                   ← JS mirror of tokens (eases, springs, colours)
+│  │  ├─ prefs.ts                    ← ambient / sfx / motion store + pre-paint init script
+│  │  ├─ a11y/useDialog.ts           ← focus trap, Esc, scroll lock, focus restore
+│  │  ├─ audio/engine.ts             ← procedural Web Audio
+│  │  └─ motion/shards.ts, useMediaQuery.ts
+│  └─ providers/ExperienceProvider.tsx ← prefs + Lenis + MotionConfig + audio sync
 ```
 
-**Planned (not built yet):** `components/arcs/` for Chapter 02 — The Arcs & Timeline (see §8).
+**Shaders** live inline in `webgl/ReiatsuField.tsx` (one small vertex + fragment pair). If you add more, move them to `src/components/webgl/shaders/*.glsl.ts` as exported template strings.
 
 ### Server / Client split
 
 | Boundary | Why |
 |---|---|
-| `page.tsx`, `Codex.tsx` are Server Components | Static copy and data render to HTML with zero JS. |
-| `Hero`, `CodexRail`, cards, dialog, TopBar are Client Components | They need pointer, scroll and audio APIs. |
-| `ReiatsuField` loads via `next/dynamic({ ssr: false })` after `requestIdleCallback` | three.js (~150 KB gz) never blocks LCP or hydration. |
+| `page.tsx`, `*Section.tsx`, `Codex.tsx`, `VolumePoem.tsx` are Server Components | Headings, copy and data render to HTML with zero JS. |
+| `Hero`, `Gallery`, `Archive`, `CodexRail`, `InkLines`, dialogs, TopBar are Client Components | They need pointer, scroll and audio APIs. |
+| `ReiatsuField` loads via `next/dynamic({ ssr: false })` after `requestIdleCallback` | three.js never blocks LCP or hydration. |
+| Anime.js is `import()`ed inside the drawer effect | It only downloads when someone releases a seal. |
 
 The page is fully static (`○ /` in the build output), so Vercel serves it from the edge CDN.
 
@@ -102,9 +122,66 @@ Depth stack (back → front), each driven by one spring-smoothed pointer value t
 
 **Icons.** `src/app/favicon.ico` (16–64 px), `icon.png` (256 px, circular, transparent corners) and `apple-icon.png` (180 px, opaque) are generated from the supplied circular portrait. Next's file conventions emit the `<link>` tags automatically.
 
+**Radial mask.** The art sits under an intersected mask (a radial ellipse × a vertical linear fade), so it dissolves into the void on every side instead of ending in a hard edge.
+
+**Water ripple.** A click on the art spawns three expanding rings at the pointer (Motion, ~1 s) right before the shatter, so the surface reads as water first and glass second. Skipped under reduced motion.
+
 **Kyōka Suigetsu distortion.** An SVG `feTurbulence` → `feDisplacementMap` filter. Pointer *velocity* over the art feeds a decaying value written straight to the filter's `scale` attribute in rAF (no React re-render per frame). The filter is only attached while scale > 0.4, so idle cost is zero. It's disabled for touch and reduced motion.
 
 **Shatter.** `ShatterImage` renders one optimised `<Image preload fetchPriority="high">` for LCP. On "Shatter Kyōka Suigetsu" (or a click on the art, which sets the impact point), it swaps to 70 `clip-path` triangles from `lib/motion/shards.ts`. Shards fly outward, with more force near the impact, then reassemble 1.5 s later (the illusion was never broken). The same event fires `reiatsu:burst` so the particle field blows outward in sync, and the audio engine plays a synthesised glass break. Under reduced motion it becomes a brief cross-fade.
+
+---
+
+### Mobile framing
+
+The art is anchored with `FOCAL = "50% 0%"` in `Hero.tsx` (used for both the `<Image>` `objectPosition` and the shard backgrounds, so they always line up). On a 390 px phone that keeps his face centred under the floating navbar. To retune:
+
+- Move the face horizontally: change the first value (e.g. `"46% 0%"`).
+- More headroom under the navbar: raise the frame's `top-[3%] md:top-[5%]`.
+- Headline collides with the art on short screens: the text block is bottom-aligned, so lower its `clamp()` font size in `globals.css` (`--text-display`) rather than moving the art.
+
+---
+
+## 3a. Spatial Gallery — JET // Editorial
+
+- **Track:** a native horizontal scroller (`overflow-x: auto` + scroll snap), so touch, trackpad, keyboard (← →, focus the track) and screen readers work by default. Mouse drag is layered on top with pointer capture and inertia (glide 0.94); clicks are suppressed after a real drag.
+- **Depth:** on scroll, each plate gets `--tilt` and `--depth` from its distance to the viewport centre (rAF-throttled), and the CSS Module applies `rotateY` / `translateZ`.
+- **Hover distortion:** `.media:hover { filter: url(#gallery-ripple) }` — an SMIL-animated `feTurbulence` → `feDisplacementMap`. No JS per frame.
+- **Ink-Wash mode:** `url(#ink-wash)` = luminance matrix → contrast table → discrete posterise to 4 tones, with a paper-grain overlay. It's applied to the whole track and the lightbox.
+- **Lightbox:** glass dialog via `useDialog`; ← → change plate, Esc closes, focus returns to the plate.
+- **Why CSS Modules here:** the gallery has nested state selectors (`.ink .item:hover .media`) and reduced-motion overrides that read better as plain CSS than as utility strings. Tailwind still handles layout.
+
+**Adding your art:** drop files in `public/images/gallery/`, then in `src/content/gallery.ts` replace a placeholder slot:
+
+```ts
+import plate3 from "../../public/images/gallery/plate-03.jpg";
+{ id: "slot-03", title: "Your title", kanji: "斬", medium: "Ink on paper", caption: "…",
+  tone: "hollow", shape: "portrait", image: plate3, alt: "Describe the image" }
+```
+
+Static imports give you width/height and a blur placeholder for free. Only use art you have the right to publish.
+
+---
+
+## 3b. SRDI Experimental Archives
+
+- **Data:** `src/content/projects.ts`. Each `Project` has a `threat` (1–5 → Dormant … Catastrophic), `category` (filters), `stack` tags with a Kidō school (`hado` = what users see, `bakudo` = what binds it, `kaido` = what keeps it healthy), `links.live` / `links.repo`, and an optional `preview.image` / `preview.video`.
+- **Filters:** `aria-pressed` buttons; the grid animates with Motion `layout` + `AnimatePresence mode="popLayout"`, and a polite status line announces the count.
+- **Hover preview:** if `preview.video` is set (put a short muted MP4/WebM in `public/video/`), it plays on hover/focus and rewinds on leave. Otherwise the still un-greys with a scanline sweep.
+- **Release Seal drawer:** side drawer on ≥ 768 px, bottom sheet on phones. Built on `useDialog` (focus trap, Esc, scroll lock, focus restore). Links open in a new tab with `rel="noopener noreferrer"`.
+- **Anime.js:** the seal glyph's strokes are drawn with `svg.createDrawable(...)` + `animate(..., { draw: ["0 0", "0 1"], delay: stagger(140) })`. The module is dynamically imported in the effect and `revert()`ed on close; under reduced motion it's skipped and the seal renders fully drawn.
+
+**Adding a project:** copy an entry in `projects.ts`, give it a new `id` and `fileNo`, remove `sample: true`, and fill in the links. Delete the three sample dossiers when you have real ones.
+
+---
+
+## 3c. Interlude — The Soul's Monologue
+
+`content/poem.ts` holds the verse; `InkLines` maps the section's scroll progress across every word so each one bleeds from blurred and faint to sharp ghost-white as you scroll. Reduced motion renders it fully inked. The verse is **original** — Kubo's volume poems are copyrighted, so write your own if you change it.
+
+## 3d. Codex ambient glow
+
+Each card carries `data-accent`. `CodexGlow` listens (delegated) for pointer and focus inside the section and cross-fades one of four pre-rendered radial light layers, so hovering Ichigo washes the section red, Aizen violet, and so on. Opacity-only transitions keep it on the compositor.
 
 ---
 
@@ -144,10 +221,10 @@ Depth stack (back → front), each driven by one spring-smoothed pointer value t
 **Where GSAP / Anime.js / Lottie fit (optional):**
 
 - **GSAP ScrollTrigger:** for the Arcs timeline if you want scrubbed, multi-step pinned sequences. Register in a client component, tie it to Lenis with `lenis.on("scroll", ScrollTrigger.update)` and `gsap.ticker.add(t => lenis.raf(t * 1000))`, then remove the provider's own rAF loop. Gate every timeline on `reducedMotion`.
-- **Anime.js:** good for SVG stroke and morph micro-animations (e.g. drawing kanji brush strokes). Import inside `useEffect` and `revert()` on cleanup.
-- **Lottie:** use `@lottiefiles/dotlottie-react`, lazy-loaded, with `autoplay={!reducedMotion}`.
+- **Anime.js (in use):** the Release Seal stroke draw. Pattern: `import("animejs")` inside `useEffect`, keep the returned animation, `revert()` on cleanup, skip when `reducedMotion`.
+- **Lottie (optional):** use `@lottiefiles/dotlottie-react`, lazy-loaded, with `autoplay={!reducedMotion}` and `loop={false}`. A good fit for a brush-stroke loader or an animated seal if you'd rather author it in After Effects.
 
-Motion alone covers everything in the Hero and Codex, so these are left out to keep the bundle lean.
+Motion covers everything else, so GSAP and Lottie are left out to keep the bundle lean.
 
 ---
 
@@ -161,9 +238,10 @@ Motion alone covers everything in the Hero and Codex, so these are left out to k
 | `click` | band-passed noise transient + 140 → 48 Hz thump (mechanical detent) |
 | `open` | rising triangle + sine fifth |
 | `shatter` | high-passed noise sweep + 4 inharmonic partials + sub drop |
+| `unsheathe` | 900 → 5,200 Hz band-passed noise sweep (the blade leaving the saya) + two bell pings at 2,093 / 3,136 Hz |
 | ambient hum | 55 / 55.6 Hz beating sines + 110 Hz triangle + band-passed noise, low-passed at 320 Hz |
 
-Sound is **opt-in** (browser autoplay policy, and courtesy). It is never restored as "on" across visits. Everything runs through a compressor on the master bus.
+There are two independent, opt-in switches in the navbar: **Ambient** (the hum) and **SFX** (clicks, hovers, chimes). The SFX choice is remembered; ambient never auto-restarts across visits (browser autoplay policy, and courtesy). Everything runs through a compressor on the master bus.
 
 ---
 
@@ -185,7 +263,7 @@ Sound is **opt-in** (browser autoplay policy, and courtesy). It is never restore
 
 ---
 
-## 8. Extending: Chapter 02 — The Arcs & Timeline
+## 8. Extending: The Arcs & Timeline
 
 Suggested shape, reusing the same patterns:
 
@@ -196,14 +274,21 @@ Suggested shape, reusing the same patterns:
 
 ---
 
-## 9. Run & deploy
+## 9. Local setup, run & deploy
+
+Requirements: Node 20.9+ (22 LTS recommended), npm 10+.
 
 ```bash
+git clone https://github.com/kuriadev/BleachThemeWebsite.git
+cd BleachThemeWebsite
 npm install
 npm run dev        # http://localhost:3000
 npm run build && npm start
 npm run lint
+npx tsc --noEmit   # after a build (it generates next-env.d.ts)
 ```
+
+**WebGL locally:** works in any modern browser. If particles don't appear, check `chrome://gpu` (hardware acceleration must be on); the CSS bloom is the fallback, so the page still looks right.
 
 **Vercel:** import the repo (framework preset auto-detects Next.js), no env vars needed. The page is static, so it's served from the edge. Images are optimised to AVIF/WebP at qualities 75/90 (allow-listed in `next.config.ts`, required in Next 16).
 
@@ -211,4 +296,4 @@ npm run lint
 
 ## 10. Content & IP note
 
-This is an unofficial fan project. BLEACH © Tite Kubo / Shueisha, TV Tokyo, dentsu, Pierrot. Codex lore is written as original summaries. The hero art is the image supplied by the project owner. To add character art to the Codex, use images you have the right to use: put them in `src/assets/codex/`, import them in `content/characters.ts` via the `image` field, and render them in `CodexDialog`. Cards are intentionally typographic otherwise.
+This is an unofficial fan project. BLEACH © Tite Kubo / Shueisha, TV Tokyo, dentsu, Pierrot. Codex lore is written as original summaries. The hero art and portrait are images supplied by the project owner; gallery placeholders are original abstract ink compositions, and the interlude verse is original. To add character art to the Codex, use images you have the right to use: put them in `public/images/codex/`, import them in `content/characters.ts` via the `image` field, and render them in `CodexDialog`. Cards are intentionally typographic otherwise.

@@ -68,6 +68,7 @@ export function CodexCard({ character: c, index, onOpen, onFocusCard }: Props) {
           audio.play("open");
           onOpen(c.id);
         }}
+        data-accent={c.accent}
         aria-haspopup="dialog"
         aria-label={`${c.name}, ${c.role}. Zanpakutō ${c.zanpakuto.name}. Open lore and abilities.`}
         style={{ rotateX: rx, rotateY: ry, transformStyle: "preserve-3d" }}

@@ -3,14 +3,15 @@
  * Every sound is synthesised so it stays tiny, tweakable and on-brand.
  * Audio is opt-in; nothing is created until the user enables sound.
  */
-type Voice = "click" | "hover" | "shatter" | "open";
+type Voice = "click" | "hover" | "shatter" | "open" | "unsheathe";
 
 class AudioEngine {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private hum: { gain: GainNode; nodes: AudioScheduledSourceNode[] } | null = null;
   private noise: AudioBuffer | null = null;
-  private enabled = false;
+  private sfx = false;
+  private ambient = false;
   private lastHover = 0;
 
   private ensure(): AudioContext | null {
@@ -38,17 +39,30 @@ class AudioEngine {
     return buf;
   }
 
-  async setEnabled(on: boolean) {
-    this.enabled = on;
+  /** Must be called from a user gesture (click) the first time. */
+  async setAmbient(on: boolean) {
+    this.ambient = on;
     const ctx = this.ensure();
     if (!ctx) return;
     if (on) {
       if (ctx.state === "suspended") await ctx.resume();
       this.startHum();
-      this.play("open");
     } else {
       this.stopHum();
     }
+  }
+
+  /** Restore the stored SFX preference without making a sound. */
+  syncSfx(on: boolean) {
+    this.sfx = on;
+  }
+
+  async setSfx(on: boolean) {
+    this.sfx = on;
+    if (!on) return;
+    const ctx = this.ensure();
+    if (ctx?.state === "suspended") await ctx.resume();
+    this.play("open");
   }
 
   /** Low, slowly-beating drone: two detuned sines + filtered noise bed. */
@@ -105,9 +119,12 @@ class AudioEngine {
   }
 
   play(voice: Voice) {
-    if (!this.enabled) return;
+    if (!this.sfx) return;
     const ctx = this.ensure();
-    if (!ctx || ctx.state !== "running") return;
+    if (!ctx) return;
+    // Restored-from-storage SFX: the first click both resumes and plays.
+    if (ctx.state === "suspended") void ctx.resume();
+    if (ctx.state === "closed") return;
     const t = ctx.currentTime;
     switch (voice) {
       case "hover": {
@@ -125,6 +142,13 @@ class AudioEngine {
       case "open": {
         this.tone(t, 220, 330, 0.5, 0.09, "triangle");
         this.tone(t + 0.04, 330, 495, 0.6, 0.05, "sine");
+        break;
+      }
+      case "unsheathe": {
+        // Blade draw: a rising, narrow metallic scrape + a clean ring.
+        this.noiseSweep(t, 0.45, 900, 5200, 0.22);
+        this.tone(t + 0.32, 2093, 2080, 1.2, 0.05, "sine");
+        this.tone(t + 0.32, 3136, 3120, 0.9, 0.025, "sine");
         break;
       }
       case "shatter": {
@@ -159,6 +183,24 @@ class AudioEngine {
     o.connect(g).connect(this.master!);
     o.start(t);
     o.stop(t + dur + 0.02);
+  }
+
+  private noiseSweep(t: number, dur: number, from: number, to: number, peak: number) {
+    const ctx = this.ctx!;
+    const s = ctx.createBufferSource();
+    s.buffer = this.noise;
+    const f = ctx.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 9;
+    f.frequency.setValueAtTime(from, t);
+    f.frequency.exponentialRampToValueAtTime(to, t + dur);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + dur * 0.7);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f).connect(g).connect(this.master!);
+    s.start(t);
+    s.stop(t + dur + 0.02);
   }
 
   private noiseBurst(t: number, dur: number, freq: number, peak: number, type: BiquadFilterType) {

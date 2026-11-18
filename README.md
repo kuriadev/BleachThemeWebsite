@@ -1,16 +1,19 @@
-# BLEACH — Kyōka Suigetsu
+# KYŌKA // ARCHIVE
 
-An immersive, unofficial Bleach fan experience. Next.js 16 (App Router) · Tailwind v4 · Motion · three.js · Lenis · Web Audio.
+An immersive, unofficial Bleach fan archive built around Sōsuke Aizen. Next.js 16 (App Router) · Tailwind v4 + CSS Modules · Motion · Anime.js · three.js · Lenis · Web Audio.
 
 ```bash
 npm install
 npm run dev   # http://localhost:3000
 ```
 
-- **Hero:** Aizen art as the focal point, WebGL reiatsu particles, liquid-glass mirror shards, pointer-velocity distortion, and a "Shatter Kyōka Suigetsu" break-and-reform sequence with synthesised audio.
-- **Zanpakutō Codex:** a pinned horizontal gallery of glass cards with pointer-tracked light and tilt; each opens an accessible lore dialog with a power profile.
-- **Top bar:** opt-in ambient sound and a reduced-motion toggle (also follows the OS setting).
+- **Hero:** Aizen art under a radial mask, WebGL reiatsu particles, liquid-glass shards, water-ripple impact and a "Shatter Kyōka Suigetsu" break-and-reform sequence.
+- **JET // Editorial:** a draggable spatial gallery with hover distortion, an Original Color ↔ Ink-Wash toggle and a glass lightbox.
+- **SRDI Experimental Archives:** filterable project dossiers with Reiatsu threat levels, Kidō-classified stack tags, hover previews and a "Release Seal" drawer.
+- **The Soul's Monologue:** a scroll-inked interlude (original verse).
+- **Zanpakutō Codex:** glass cards whose light tints the whole section, with lore and ability profiles.
+- **Floating navbar:** ambient sound, click SFX and reduced-motion toggles (also follows the OS setting).
 
-Architecture, tokens, the WebGL setup and motion integration are covered in [`docs/IMPLEMENTATION.md`](docs/IMPLEMENTATION.md).
+Add your own art in `src/content/gallery.ts` and projects in `src/content/projects.ts`. Everything else is in [`docs/IMPLEMENTATION.md`](docs/IMPLEMENTATION.md).
 
 Unofficial fan project. BLEACH © Tite Kubo / Shueisha, TV Tokyo, dentsu, Pierrot.

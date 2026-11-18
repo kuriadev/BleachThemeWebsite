@@ -136,3 +136,9 @@ html[data-motion="reduced"] *::after {
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
 }
+
+/* Dossier scanline (used via an arbitrary animate-[scan_…] value, so it lives outside @theme). */
+@keyframes scan {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(300%); }
+}

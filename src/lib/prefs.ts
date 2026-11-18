@@ -5,12 +5,15 @@
  */
 export type MotionPref = "auto" | "reduced";
 export interface Prefs {
-  sound: boolean;
+  /** Low ambient drone. Never restored on load (no surprise audio). */
+  ambient: boolean;
+  /** UI click / hover / chime effects. Only ever sound after a user gesture. */
+  sfx: boolean;
   motion: MotionPref;
 }
 
 export const PREFS_KEY = "bleach:prefs";
-const DEFAULTS: Prefs = { sound: false, motion: "auto" };
+const DEFAULTS: Prefs = { ambient: false, sfx: false, motion: "auto" };
 
 let current: Prefs = DEFAULTS;
 let hydrated = false;
@@ -22,9 +25,10 @@ function read(): Prefs {
     if (!raw) return DEFAULTS;
     const parsed = JSON.parse(raw) as Partial<Prefs>;
     return {
-      // Sound is never restored as "on": browsers block audio until a gesture,
-      // and surprise audio on load is hostile UX.
-      sound: false,
+      // Ambient is never restored as "on": browsers block audio until a
+      // gesture, and a drone starting on load is hostile UX.
+      ambient: false,
+      sfx: parsed.sfx === true,
       motion: parsed.motion === "reduced" ? "reduced" : "auto",
     };
   } catch {
@@ -50,7 +54,7 @@ export const prefsStore = {
   set(patch: Partial<Prefs>) {
     current = { ...current, ...patch };
     try {
-      window.localStorage.setItem(PREFS_KEY, JSON.stringify({ motion: current.motion }));
+      window.localStorage.setItem(PREFS_KEY, JSON.stringify({ motion: current.motion, sfx: current.sfx }));
     } catch {
       /* storage unavailable (private mode) — keep in-memory value */
     }

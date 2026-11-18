@@ -10,7 +10,7 @@ import {
   type MotionValue,
 } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import aizen from "@/assets/aizen-hero.png";
+import aizen from "../../../public/images/hero-aizen.png";
 import { audio } from "@/lib/audio/engine";
 import { ease, spring } from "@/lib/tokens";
 import { useExperience } from "@/providers/ExperienceProvider";
@@ -119,8 +119,20 @@ export function Hero() {
   );
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
+  // ── Water-moon ripple: concentric rings spread from the click point ──
+  const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
+  const rippleId = useRef(0);
+  const ripple = (clientX: number, clientY: number) => {
+    const s = sectionRef.current?.getBoundingClientRect();
+    if (!s || reducedMotion) return;
+    const id = ++rippleId.current;
+    setRipples((r) => [...r, { id, x: clientX - s.left, y: clientY - s.top }]);
+    timers.current.push(window.setTimeout(() => setRipples((r) => r.filter((p) => p.id !== id)), 1600));
+  };
+
   const onArtClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
+    ripple(e.clientX, e.clientY);
     shatter({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 });
   };
 
@@ -257,6 +269,22 @@ export function Hero() {
           </motion.div>
         </div>
       </motion.div>
+
+      {/* Water-moon ripples */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
+        {ripples.map((p) =>
+          [0, 0.14, 0.28].map((d) => (
+            <motion.span
+              key={`${p.id}-${d}`}
+              className="absolute block size-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-ghost/50 shadow-[0_0_24px_rgba(166,108,255,0.45),inset_0_0_18px_rgba(166,108,255,0.35)]"
+              style={{ left: p.x, top: p.y }}
+              initial={{ scale: 0.2, opacity: 0.9 }}
+              animate={{ scale: 6, opacity: 0 }}
+              transition={{ duration: 1.4, delay: d, ease: ease.reiatsu }}
+            />
+          )),
+        )}
+      </div>
 
       {/* Revelation line while the mirror is broken */}
       <AnimatePresence>

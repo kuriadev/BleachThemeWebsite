@@ -16,12 +16,14 @@ import { audio } from "@/lib/audio/engine";
 import { prefsStore } from "@/lib/prefs";
 
 interface Experience {
-  sound: boolean;
+  ambient: boolean;
+  sfx: boolean;
   /** True when the OS *or* the in-site toggle asks for reduced motion. */
   reducedMotion: boolean;
   /** True only when the user chose reduced motion in-site. */
   userReducedMotion: boolean;
-  toggleSound: () => void;
+  toggleAmbient: () => void;
+  toggleSfx: () => void;
   toggleMotion: () => void;
   /** Pause / resume inertial scrolling (e.g. while a dialog is open). */
   lockScroll: (locked: boolean) => void;
@@ -71,10 +73,19 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
     };
   }, [reducedMotion]);
 
-  const toggleSound = useCallback(() => {
-    const next = !prefsStore.getSnapshot().sound;
-    prefsStore.set({ sound: next });
-    void audio.setEnabled(next);
+  // Stored SFX preference → engine (silent; first gesture unlocks audio).
+  useEffect(() => audio.syncSfx(prefs.sfx), [prefs.sfx]);
+
+  const toggleAmbient = useCallback(() => {
+    const next = !prefsStore.getSnapshot().ambient;
+    prefsStore.set({ ambient: next });
+    void audio.setAmbient(next);
+  }, []);
+
+  const toggleSfx = useCallback(() => {
+    const next = !prefsStore.getSnapshot().sfx;
+    prefsStore.set({ sfx: next });
+    void audio.setSfx(next);
   }, []);
 
   const toggleMotion = useCallback(() => {
@@ -93,14 +104,16 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<Experience>(
     () => ({
-      sound: prefs.sound,
+      ambient: prefs.ambient,
+      sfx: prefs.sfx,
       reducedMotion,
       userReducedMotion: prefs.motion === "reduced",
-      toggleSound,
+      toggleAmbient,
+      toggleSfx,
       toggleMotion,
       lockScroll,
     }),
-    [prefs.sound, prefs.motion, reducedMotion, toggleSound, toggleMotion, lockScroll],
+    [prefs.ambient, prefs.sfx, prefs.motion, reducedMotion, toggleAmbient, toggleSfx, toggleMotion, lockScroll],
   );
 
   return (
